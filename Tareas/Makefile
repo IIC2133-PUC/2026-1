@@ -224,13 +224,18 @@ recreate:
 	@echo "==> Compiling from scratch..."
 	@$(MAKE) -f $(THIS_MAKEFILE) all
 
+###############################################################################
+#                          Limpieza detallada                                 #
+###############################################################################
 clean:
 	@echo "$(BOLD)$(GREEN)Cleaning...$(RESET)"
 	@echo "$(BOLD)$(CYAN)Entering folder: $(CURDIR) ...$(RESET)"
 	@echo "Deleting folder $(OBJ)..."
 	@$(RMDIR_CMD) $(OBJ) 2>$(NULL_DEVICE) || true
 	@$(foreach bin, $(BIN_PROGRAMS), \
+		$(if $(filter true,$(DEBUG_MODE)),echo "Deleting binary $(patsubst ./%,%,$(bin))";) \
 		$(RM_CMD) $(bin) 2>$(NULL_DEVICE) || true; )
+	@$(RM_CMD) .compile_count 2>$(NULL_DEVICE) || true
 	@echo "$(BOLD)$(CYAN)Leaving folder: $(CURDIR) ...$(RESET)"
 	@echo "$(BOLD)$(GREEN)Done cleaning$(RESET)"
 
