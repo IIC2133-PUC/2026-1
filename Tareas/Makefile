@@ -63,6 +63,17 @@ OBJ=obj
 
 
 ###############################################################################
+#                          CONFIGURACIÓN INTERNA                              #
+#        (No modificar de aquí en adelante si no sabes lo que haces)          #
+###############################################################################
+
+# Eliminar archivos en caso de error de compilación
+.DELETE_ON_ERROR:
+
+# Hacer que Make aborte en el primer error (-e) y ejecute en modo comando (-c)
+.SHELLFLAGS := -ec
+
+###############################################################################
 # OPTIMIZACIÓN POR COMPILADOR, según el flag DEBUG_MODE                       #
 ###############################################################################
 
@@ -88,6 +99,15 @@ else
     # directorios en las llamadas recursivas a make.
     MAKEFLAGS += --no-print-directory
 endif
+
+###############################################################################
+# Definición de comandos                                                      #
+###############################################################################
+
+RMDIR_CMD := rm -rf$(if $(filter true,$(DEBUG_MODE)),v)  # Verbose solo en Debug Mode
+RM_CMD    := rm -f
+MKDIR_CMD := mkdir -p
+NULL_DEVICE := /dev/null
 
 ###############################################################################
 # PARÁMETROS                                                                  #
@@ -153,17 +173,18 @@ all: $(OBJDIR) $(BIN) $(BIN_PROGRAMS)
 
 # Esta regla elimina todo registro de compilación que se haya hecho
 clean:
-	@rm -rfv $(BIN_PROGRAMS) && rm -rfv $(OBJ)
-	@if [ -d "$(bin_dir)" ] && [ "$(bin_dir)" != "." ]; then rm -r "$(bin_dir)"; fi
+	@$(RMDIR_CMD) $(BIN_PROGRAMS) 2>$(NULL_DEVICE) || true
+	@$(RMDIR_CMD) $(OBJ) 2>$(NULL_DEVICE) || true
+	@if [ -d "$(BIN)" ] && [ "$(BIN)" != "." ]; then $(RMDIR_CMD) "$(BIN)"; fi
 	@echo "done cleaning"
 
 # Esta regla crea los directorios donde se guardan los archivos de objeto .o
 $(OBJDIR):
-	@mkdir -p $@
+	@$(MKDIR_CMD) $@
 
 # Crea la carpeta donde se guardan los ejecutables
 $(BIN):
-	@mkdir -p $@
+	@$(MKDIR_CMD) $@
 
 # Esta regla mágica indica que las siguientes reglas necesitan dos pasadas
 .SECONDEXPANSION:
