@@ -1,0 +1,67 @@
+### OS
+## Windows
+# Vistas previas
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Archivos de configuración de carpetas
+Desktop.ini
+
+# Papelera de reciclaje
+$RECYCLE.BIN/
+
+# Accesos directos
+*.lnk
+
+# Instaladores
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Variables locales de vscode + Windows
+.history/
+
+## MacOS
+# Vistas previas y metadata
+.DS_Store
+.DS_Store?
+
+# Archivos de recursos y metadata
+._*
+
+# Más metadata
+.AppleDouble
+.LSOverride
+
+# Directorios
+.Spotlight-V100
+.Trashes
+.fseventsd
+.VolumeIcon.icns
+
+# Redes compartidas
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+
+## Linux
+
+# Papelera de reciclaje
+.Trash-*
+
+# Sistemas de archivo y puntos de montaje
+.nfs*
+.fuse_hidden*
+
+# Configuración de carpetas
+.directory
+
+# GNOME/GTK thumbnails cache (a veces aparece)
+.thumbnails/
+
+
