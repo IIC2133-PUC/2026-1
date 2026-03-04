@@ -135,4 +135,9 @@ out/
 *.userosscache
 *.sln.docstates
 
-
+## Genérico (builds)
+build/
+dist/
+bin/
+obj/
+target/
