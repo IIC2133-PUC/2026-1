@@ -211,10 +211,18 @@ CFLAGS = $(OPT)
 # REGLAS                                                                      #
 ###############################################################################
 
+THIS_MAKEFILE := $(firstword $(MAKEFILE_LIST))
+
 .PHONY: all clean recreate
 
 all: $(OBJ_DIR) $(BIN) $(BIN_PROGRAMS)
 	@echo "$(CYAN)$(BOLD)Done compiling$(RESET)"
+
+recreate:
+	@echo "==> Recreating all. Cleaning first..."
+	@$(MAKE) -f $(THIS_MAKEFILE) clean
+	@echo "==> Compiling from scratch..."
+	@$(MAKE) -f $(THIS_MAKEFILE) all
 
 clean:
 	@echo "$(BOLD)$(GREEN)Cleaning...$(RESET)"
@@ -225,12 +233,6 @@ clean:
 		$(RM_CMD) $(bin) 2>$(NULL_DEVICE) || true; )
 	@echo "$(BOLD)$(CYAN)Leaving folder: $(CURDIR) ...$(RESET)"
 	@echo "$(BOLD)$(GREEN)Done cleaning$(RESET)"
-
-recreate:
-	@echo "==> Recreating all. Cleaning first..."
-	@$(MAKE) -f $(firstword $(MAKEFILE_LIST)) clean
-	@echo "==> Compiling from scratch..."
-	@$(MAKE) -f $(firstword $(MAKEFILE_LIST)) all
 
 ###############################################################################
 #  Crear directorios                                                          #
