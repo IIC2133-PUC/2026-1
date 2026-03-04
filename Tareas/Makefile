@@ -61,6 +61,8 @@ CC=gcc -std=gnu11
 # La carpeta donde van todos los archivos de objeto
 OBJ=obj
 
+COLORS = true
+
 
 ###############################################################################
 #                          CONFIGURACIÓN INTERNA                              #
@@ -72,6 +74,31 @@ OBJ=obj
 
 # Hacer que Make aborte en el primer error (-e) y ejecute en modo comando (-c)
 .SHELLFLAGS := -ec
+
+###############################################################################
+# Colores                                                                     #
+###############################################################################
+
+# ANSI/VT100 Códigos de Escapes
+# Colores ANSI para salida en consola (válido en Unix-like)
+ifeq ($(strip $(COLORS)),true)
+  YELLOW         := \033[33m
+  BOLD           := \033[1m
+  NO_BOLD        := \033[22m
+  CYAN           := \033[36m
+  GREEN          := \033[32m
+  RED_BOLD_SHELL := $(shell printf '\033[31m')
+  RESET          := \033[0m
+  RESET_SHELL    := $(shell printf '\033[0m')
+else
+  YELLOW    :=
+  BOLD      :=
+  NO_BOLD   :=
+  CYAN      :=
+  GREEN     :=
+  RED       :=
+  RESET     :=
+endif
 
 ###############################################################################
 # OPTIMIZACIÓN POR COMPILADOR, según el flag DEBUG_MODE                       #
@@ -159,54 +186,41 @@ BIN_PROGRAMS := $(addprefix $(BIN)/,$(PROGRAMS))
 # REGLAS                                                                      #
 ###############################################################################
 
-# Las reglas son como funciones.
-# Cuando llamas 'make X' en la consola, se ejecuta la regla X.
-# Las reglas tienen prerrequisitos: esto es lo que aparece a su derecha
-# Una vez se cumplan los prerrequisitos, se ejecuta el contenido de la regla
-# Si llamas 'make' a secas se ejecutará la primera regla: 'all'
-
-# Esta regla imprime que todo está listo
-# Pero solo una vez que se hayan llamado las reglas $(OBJDIR) y $(PROGRAMS)
-
 all: $(OBJDIR) $(BIN) $(BIN_PROGRAMS)
-	@echo "done compiling"
+	@echo "$(CYAN)$(BOLD)Done compiling$(RESET)"
 
-# Esta regla elimina todo registro de compilación que se haya hecho
 clean:
-	@$(RMDIR_CMD) $(BIN_PROGRAMS) 2>$(NULL_DEVICE) || true
+	@echo "$(BOLD)$(GREEN)Cleaning...$(RESET)"
+	@echo "$(BOLD)$(CYAN)Entering folder: $(CURDIR) ...$(RESET)"
+	@echo "Deleting folder $(OBJ)..."
 	@$(RMDIR_CMD) $(OBJ) 2>$(NULL_DEVICE) || true
-	@if [ -d "$(BIN)" ] && [ "$(BIN)" != "." ]; then $(RMDIR_CMD) "$(BIN)"; fi
-	@echo "done cleaning"
+	@$(foreach bin, $(BIN_PROGRAMS), \
+		$(RM_CMD) $(bin) 2>$(NULL_DEVICE) || true; )
+	@echo "$(BOLD)$(CYAN)Leaving folder: $(CURDIR) ...$(RESET)"
+	@echo "$(BOLD)$(GREEN)Done cleaning$(RESET)"
 
 # Esta regla crea los directorios donde se guardan los archivos de objeto .o
 $(OBJDIR):
+	@$(if $(filter true,$(DEBUG_MODE)),echo "$(BOLD)$(CYAN)Creating objects folder: $(NO_BOLD)$(CYAN)$@$(RESET)")
 	@$(MKDIR_CMD) $@
 
 # Crea la carpeta donde se guardan los ejecutables
 $(BIN):
+	@$(if $(filter true,$(DEBUG_MODE)),echo "$(BOLD)$(CYAN)Creating bin folder: $(NO_BOLD)$(CYAN)$@$(RESET)")
 	@$(MKDIR_CMD) $@
 
-# Esta regla mágica indica que las siguientes reglas necesitan dos pasadas
 .SECONDEXPANSION:
 
-# Dependencias locales para un archivo .o
 LOCAL_DEPS = $(filter $(patsubst $(OBJ)/%, $(SRC)/%, $(dir $(1)))%, $(HDRFILES))
 
-# Esta regla compila cada archivo de objeto .o
-# Pero sólo si alguno de los siguientes fue modificado desde la última vez
-## el .c respectivo del .o
-## algún .h bajo la carpeta respectiva en src
-## algún .h de los directorios comunes
-## esta mismísima Makefile
 obj/%.o: $(SRC)/%.c $$(call LOCAL_DEPS,$$@) $(DEPS) Makefile
-	@$(CC) $(CFLAGS) $< -c -o $@ $(LIB) && echo "compiled '$@'"
+	@$(if $(filter true,$(DEBUG_MODE)),echo "$(GREEN)Compiling $(notdir $<)...$(RESET)")
+	@$(CC) $(CFLAGS) $< -c -o $@ $(LIB) && echo "$(GREEN)$(BOLD)compiled '$(notdir $<)'$(RESET)"
 
-# Esta regla conecta y compila cada programa a partir de los .o
-# Pero solo una vez que se haya llamado la regla anterior con lo siguiente
-## todos los .o de la carpeta respectiva del programa
-## todos los .o de los directorios comunes
 $(BIN_PROGRAMS): $$(filter $(OBJ)/$$(notdir $$@)/% $(foreach i, $(COMMON), $(OBJ)/$(i)/%), $(OBJFILES))
-	@$(CC) $(CFLAGS) $^ -o $@ $(LIB) && echo "compiled '$@'"
+	@echo "$(GREEN)Linking $(notdir $@)...$(RESET)"
+	@$(CC) $(CFLAGS) $^ -o $@ $(LIB)
+	@echo "$(GREEN)$(BOLD)  compiled '$(notdir $@)'$(RESET)"
 
 
 ###############################################################################
