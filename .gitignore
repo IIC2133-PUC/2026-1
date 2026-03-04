@@ -82,3 +82,57 @@ tmp/
 temp/
 .cache/
 
+### IDEs
+## Vscode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+# .history/
+.vscode-test/
+
+## Atom
+.atom/
+.atom-build/
+
+## Kate
+*.kate-swp
+*.kate-swo
+.kate-swp
+.kate-swo
+
+## KDevelop
+*.kdev4
+*.kdev5
+*.kdev6
+.kdev4/
+.kdev5/
+.kdev6/
+.kdev_sessions/
+.kdevelop/
+*.kdevelop*
+*.kdevses
+
+## JetBrains IDEs (genérico=
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+## Eclipse y Theia
+.project
+.classpath
+.settings/
+.theia/
+
+## Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+
