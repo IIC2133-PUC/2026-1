@@ -192,14 +192,17 @@ BIN_PROGRAMS := $(if $(strip $(BIN)), \
     $(addprefix $(BIN_DIR),$(PROGRAMS)), \
     $(addprefix ./,$(PROGRAMS)))
 
+# Cálculo de archivos para mostrar porcentaje de avance.
+ALL_OBJ_FILES := $(foreach prog,$(PROGRAMS),$($(prog)_OBJS))
+TOTAL_OBJS    := $(words $(ALL_OBJ_FILES))
+ifeq ($(TOTAL_OBJS),0)  # Evita zero division error
+  TOTAL_OBJS := 1
+endif
+
 # Busca recursivamente todos los archivos de encabezado (.h) dentro de SRC.
 HDR_FILES := $(call rwildcard,$(SRC)/,*.h)
-
-# Todos los archivos objeto de todos los programas
-ALL_OBJ_FILES := $(foreach prog,$(PROGRAMS),$($(prog)_OBJS))
-
 # Obtiene la lista de directorios donde se encuentran los archivos objeto, ordenada y sin duplicados.
-OBJ_DIR := $(sort $(dir $(ALL_OBJ_FILES)))
+OBJ_DIR   := $(sort $(dir $(ALL_OBJ_FILES)))
 
 ###############################################################################
 # PARÁMETROS ADICIONALES (Legacy code)                                        #
@@ -208,15 +211,35 @@ OBJ_DIR := $(sort $(dir $(ALL_OBJ_FILES)))
 CFLAGS = $(OPT)
 
 ###############################################################################
+# Evitamos que se borren los .o después de linkear en debug mode              #
+###############################################################################
+ifeq ($(strip $(DEBUG_MODE)),true)
+.SECONDARY: $(ALL_OBJ_FILES)
+endif
+
+###############################################################################
 # REGLAS                                                                      #
 ###############################################################################
 
 THIS_MAKEFILE := $(firstword $(MAKEFILE_LIST))
 
-.PHONY: all clean recreate
+.PHONY: all clean recreate _reset_counter _main_comp _cleanup _calc_total
 
-all: $(OBJ_DIR) $(BIN) $(BIN_PROGRAMS)
+all:
+	@echo "$(YELLOW)$(BOLD)Compilation details:$(RESET)"
+	@echo "        $(YELLOW)Compiler $(BOLD)CC=$(CC)$(NO_BOLD) will be used with flags $(BOLD)CFLAGS=$(OPT)$(RESET)"
+	@echo ""
+	@$(MAKE) -f $(THIS_MAKEFILE) _reset_counter
+	@$(MAKE) -f $(THIS_MAKEFILE) _calc_total
+	@-$(MAKE) -f $(THIS_MAKEFILE) _main_comp
+	@-$(MAKE) -f $(THIS_MAKEFILE) _cleanup
 	@echo "$(CYAN)$(BOLD)Done compiling$(RESET)"
+
+_cleanup:
+	@$(RM_CMD) .compile_count 2>$(NULL_DEVICE) || true
+
+_main_comp: $(OBJ_DIR) $(BIN) $(BIN_PROGRAMS)
+	@true  # solo agrupar dependencias
 
 recreate:
 	@echo "==> Recreating all. Cleaning first..."
@@ -239,10 +262,26 @@ clean:
 	@echo "$(BOLD)$(CYAN)Leaving folder: $(CURDIR) ...$(RESET)"
 	@echo "$(BOLD)$(GREEN)Done cleaning$(RESET)"
 
+_reset_counter:
+	@$(RM_CMD) .compile_count 2>$(NULL_DEVICE) || true
+
+###############################################################################
+#          Regla para calcular la cantidad real de archivos a compilar        #
+###############################################################################
+_calc_total:
+	@total=0; \
+	for obj in $(ALL_OBJ_FILES); do \
+	  src=`echo $$obj | sed 's|$(OBJ)|$(SRC)|; s/\.o$$/.c/'`; \
+	  if [ ! -f $$obj ] || [ $$src -nt $$obj ]; then \
+	     total=$$((total+1)); \
+	  fi; \
+	done; \
+	if [ $$total -eq 0 ]; then total=1; fi; \
+	echo $$total > .total_to_compile;
+
 ###############################################################################
 #  Crear directorios                                                          #
 ###############################################################################
-
 $(OBJ_DIR):
 	@$(if $(filter true,$(DEBUG_MODE)),echo "$(BOLD)$(CYAN)Creating objects folder: $(NO_BOLD)$(CYAN)$@$(RESET)")
 	@$(MKDIR_CMD) $@
@@ -254,30 +293,42 @@ $(BIN):
 ###############################################################################
 # Regla mágica para manejar dependencias                                      #
 ###############################################################################
-
 .SECONDEXPANSION:
 LOCAL_DEPS = $(filter $(patsubst $(OBJ)/%, $(SRC)/%, $(dir $(1)))%, $(HDR_FILES))
 
 ###############################################################################
-#  Regla de compilación                                                       #
+#  Regla de compilación con porcentaje de avance                              #
 ###############################################################################
-
 $(OBJ)/%.o: $(SRC)/%.c $$(call LOCAL_DEPS,$$@) $(HDR_FILES) Makefile
 	@$(if $(filter true,$(DEBUG_MODE)),echo "$(GREEN)Compiling $(notdir $<)...$(RESET)")
 	@$(if $(filter true,$(DEBUG_MODE)),echo "$(CC) $(CFLAGS) $< -c -o $@ $(LIB)")
 	@$(MKDIR_CMD) $(dir $@)
 	@$(CC) $(CFLAGS) $< -c -o $@ $(LIB)
-	@echo "$(GREEN)$(BOLD)compiled '$(notdir $<)'$(RESET)"
+	@ CURRENT=$$(cat .compile_count 2>$(NULL_DEVICE) || echo 0); \
+	   CURRENT=$$((CURRENT+1)); \
+	   echo $$CURRENT > .compile_count; \
+	   TOTAL=`cat .total_to_compile`; \
+	   PCT=$$((100*CURRENT/TOTAL)); \
+	   echo "$(GREEN)$(BOLD)[ $${PCT}% ] compiled '$(notdir $<)'$(RESET)"
 
 ###############################################################################
 # Linkeo final                                                                #
 ###############################################################################
-
-$(BIN_DIR)%: $$($$*_OBJS)
+$(BIN)/%: $$($$*_OBJS)
 	@echo "$(GREEN)Linking $(notdir $@)...$(RESET)"
 	@$(if $(filter true,$(DEBUG_MODE)),echo "$(CC) $(CFLAGS) $^ -o $@ $(LIB)")
 	@$(CC) $(CFLAGS) $^ -o $@ $(LIB)
 	@echo "$(GREEN)$(BOLD)  compiled '$(notdir $@)'$(RESET)"
+
+
+###############################################################################
+# XXXXXXX Known bugs / issues + pending nice to have XXXXXXX                  #
+###############################################################################
+# 1. El porcentaje no comienza desde cero si la compilación ya tiene cacheado al menos una fracción.
+# 3. `make clean` falla si el binario no está en la lista.
+# 4. Hacer que acepte el caso borde "BIN = " (sin directorio).
+# 5. Todo lo que está en `COMMON` debe encontrarse dentro de la carpeta `/src`
+###############################################################################
 
 
 ###############################################################################
