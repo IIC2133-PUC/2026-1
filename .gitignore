@@ -141,3 +141,14 @@ dist/
 bin/
 obj/
 target/
+
+## Variables de entorno, certificados y claves y otros archivos sensibles.
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+*.p12
+*.pfx
+
