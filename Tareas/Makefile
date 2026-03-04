@@ -5,6 +5,8 @@
 # Para el curso de Estructuras de Datos y Algoritmos, 2017 - 1, PUC           #
 # Makefile diseñada para el trabajo de varios programas con código común      #
 # OJO: Modificada por Benja Vicente (2023 - 2), para permitir bien SRC y BIN  #
+# OJO 2: Modificado por Luis González (ljgonzalez1) (2026 - 1), para hacerlo  #
+#        más user friendly.                                                   #
 ###############################################################################
 
 # Directorios que serán compilados a un programa
