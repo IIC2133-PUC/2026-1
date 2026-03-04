@@ -42,26 +42,38 @@
 DEBUG_MODE = true   # Mostrará warnings y no optimizará. Sirve para debug
 # DEBUG_MODE = false  # No mostrará warnings y optimizará al máximo
 
-# Directorios que serán compilados a un programa
-PROGRAMS=puffle \
+# Directorios que serán compilados a un programa (busca de forma recursiva en la carpeta)
+PROGRAMS = puffle \
 	cardjitsu
 
-# Directorios con elementos de uso común
-COMMON=
+# Directorios con elementos de uso común para todos los binarios (busca de forma recursiva en la carpetas incluidas distintas del binario)
+COMMON =
 
 # La carpeta donde va todo el código
-SRC=src
+SRC = src
 
+# TODO: Hacer que acepte el caso borde "BIN = " (sin directorio)
 # La carpeta donde quedan los ejecutables
-BIN=.
+BIN = ./
 
-# El compilador a usar: Gnu C Compiler, Standard 2011 with GNU extensions
-CC=gcc -std=gnu11
+# El compilador a usar: Gnu C Compiler, Standard 2011 con extensiones GNU
+CC = gcc -std=gnu11
 
-# La carpeta donde van todos los archivos de objeto
-OBJ=obj
+# La carpeta donde van los .o
+OBJ = ./obj
 
 COLORS = true
+
+###############################################################################
+########========--------           Librerías           --------========########
+###############################################################################
+
+# Lista de librerías a incluir (descomenta las que necesites)
+LIB  = \
+    -lm
+    # -lpng \
+    # -lpthread \
+    # -ljpg
 
 
 ###############################################################################
@@ -120,11 +132,11 @@ ifeq ($(strip $(DEBUG_MODE)),true)
     -fno-omit-frame-pointer -fno-inline
 
 else
-    # Modo Optimizado
-    OPT = -O3 -s -flto
-    # Si estamos en modo optimizado, se suprimen los mensajes de entrada/salida de
-    # directorios en las llamadas recursivas a make.
-    MAKEFLAGS += --no-print-directory
+	# Modo Optimizado
+	OPT = -O3 -s -flto
+	# Si estamos en modo optimizado, se suprimen los mensajes de entrada/salida de
+	# directorios en las llamadas recursivas a make.
+	MAKEFLAGS += --no-print-directory
 endif
 
 ###############################################################################
@@ -137,56 +149,67 @@ MKDIR_CMD := mkdir -p
 NULL_DEVICE := /dev/null
 
 ###############################################################################
-# PARÁMETROS                                                                  #
+#                        Funciones de Recursividad                            #
+###############################################################################
+
+rwildcard = $(foreach d,$(wildcard $1*), \
+               $(call rwildcard,$d/,$2) \
+               $(filter $(subst *,%,$(2)),$(d)) \
+             )
+
+# Equivalente a la búsqueda, pero sin 'find'
+find_files = $(if $(wildcard $(SRC)/$(1)), \
+                 $(call rwildcard,$(SRC)/$(1)/,$(2)), \
+                 $(error El directorio $(SRC)/$(1) no existe pero está \
+                  en PROGRAMS o COMMON) )
+
+###############################################################################
+#             Definición Recursiva de Archivos Unix-Compatible (sin find)     #
+###############################################################################
+
+# Si COMMON no está vacío, busca archivos .c en cada directorio listado en COMMON.
+COMMON_SRC := $(if $(strip $(COMMON)), \
+               $(foreach d,$(COMMON), \
+                 $(if $(wildcard $(SRC)/$(d)), \
+                   $(call find_files,$(d),*.c), \
+                 ) \
+               ),)
+
+# Para cada programa en PROGRAMS:
+# - Se define <prog>_SRC: archivos fuente (.c) + COMMON_SRC
+# - Se define <prog>_OBJS: convierte cada fuente (<SRC>/%.c) en su objeto correspondiente (<OBJ>/%.o).
+$(foreach prog,$(PROGRAMS), \
+  $(eval $(prog)_SRC := $(call find_files,$(prog),*.c) $(COMMON_SRC)) \
+  $(eval $(prog)_OBJS := $(patsubst $(SRC)/%.c,$(OBJ)/%.o,$($(prog)_SRC))) )
+
+# Binarios a compilar (filtrados en casos borde de BIN de root, y //)
+BIN_DIR := $(if $(filter %/,$(BIN)),$(BIN),$(BIN)/)
+BIN_PROGRAMS := $(if $(strip $(BIN)), \
+    $(addprefix $(BIN_DIR),$(PROGRAMS)), \
+    $(addprefix ./,$(PROGRAMS)))
+
+# Busca recursivamente todos los archivos de encabezado (.h) dentro de SRC.
+HDR_FILES := $(call rwildcard,$(SRC)/,*.h)
+
+# Todos los archivos objeto de todos los programas
+ALL_OBJ_FILES := $(foreach prog,$(PROGRAMS),$($(prog)_OBJS))
+
+# Obtiene la lista de directorios donde se encuentran los archivos objeto, ordenada y sin duplicados.
+OBJ_DIR := $(sort $(dir $(ALL_OBJ_FILES)))
+
+###############################################################################
+# PARÁMETROS ADICIONALES (Legacy code)                                        #
 ###############################################################################
 
 CFLAGS = $(OPT)
 
 ###############################################################################
-# LIBRERÍAS                                                                   #
-###############################################################################
-
-# Matemáticas (C Math library)
-MTH=-lm
-# Portable Network Graphics (PNG)
-PNG=#-lpng
-
-LIB=$(MTH) $(PNG)
-
-###############################################################################
-# MÓDULOS Y PROGRAMAS                                                         #
-###############################################################################
-
-# Todos los directorios que contienen archivos de código
-SRCDIR=$(COMMON) $(PROGRAMS)
-
-###############################################################################
-# DEPENDENCIAS Y DIRECTORIOS                                                  #
-###############################################################################
-
-# Todos los archivos .h de las carpetas comunes
-DEPS := $(foreach i, $(COMMON), $(shell find $(SRC)/$(i) -name '*.h'))
-
-# Todos los archivos .h
-HDRFILES := $(shell find $(SRC) -name '*.h')
-
-# Todos los archivos .c
-SRCFILES := $(shell find $(SRC) -name '*.c')
-
-# Archivos de objeto .o, un estado intermedio de compilación
-OBJFILES := $(foreach i, $(SRCFILES), $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(i)))
-
-# Los directorios para los archivos de objeto .o
-OBJDIR := $(patsubst $(SRC)/%, $(OBJ)/%, $(shell find $(SRC) -type d))
-
-# Archivos ejecutables
-BIN_PROGRAMS := $(addprefix $(BIN)/,$(PROGRAMS))
-
-###############################################################################
 # REGLAS                                                                      #
 ###############################################################################
 
-all: $(OBJDIR) $(BIN) $(BIN_PROGRAMS)
+.PHONY: all clean recreate
+
+all: $(OBJ_DIR) $(BIN) $(BIN_PROGRAMS)
 	@echo "$(CYAN)$(BOLD)Done compiling$(RESET)"
 
 clean:
@@ -199,36 +222,59 @@ clean:
 	@echo "$(BOLD)$(CYAN)Leaving folder: $(CURDIR) ...$(RESET)"
 	@echo "$(BOLD)$(GREEN)Done cleaning$(RESET)"
 
-# Esta regla crea los directorios donde se guardan los archivos de objeto .o
-$(OBJDIR):
+recreate:
+	@echo "==> Recreating all. Cleaning first..."
+	@$(MAKE) -f $(firstword $(MAKEFILE_LIST)) clean
+	@echo "==> Compiling from scratch..."
+	@$(MAKE) -f $(firstword $(MAKEFILE_LIST)) all
+
+###############################################################################
+#  Crear directorios                                                          #
+###############################################################################
+
+$(OBJ_DIR):
 	@$(if $(filter true,$(DEBUG_MODE)),echo "$(BOLD)$(CYAN)Creating objects folder: $(NO_BOLD)$(CYAN)$@$(RESET)")
 	@$(MKDIR_CMD) $@
 
-# Crea la carpeta donde se guardan los ejecutables
 $(BIN):
 	@$(if $(filter true,$(DEBUG_MODE)),echo "$(BOLD)$(CYAN)Creating bin folder: $(NO_BOLD)$(CYAN)$@$(RESET)")
 	@$(MKDIR_CMD) $@
 
+###############################################################################
+# Regla mágica para manejar dependencias                                      #
+###############################################################################
+
 .SECONDEXPANSION:
+LOCAL_DEPS = $(filter $(patsubst $(OBJ)/%, $(SRC)/%, $(dir $(1)))%, $(HDR_FILES))
 
-LOCAL_DEPS = $(filter $(patsubst $(OBJ)/%, $(SRC)/%, $(dir $(1)))%, $(HDRFILES))
+###############################################################################
+#  Regla de compilación                                                       #
+###############################################################################
 
-obj/%.o: $(SRC)/%.c $$(call LOCAL_DEPS,$$@) $(DEPS) Makefile
+$(OBJ)/%.o: $(SRC)/%.c $$(call LOCAL_DEPS,$$@) $(HDR_FILES) Makefile
 	@$(if $(filter true,$(DEBUG_MODE)),echo "$(GREEN)Compiling $(notdir $<)...$(RESET)")
-	@$(CC) $(CFLAGS) $< -c -o $@ $(LIB) && echo "$(GREEN)$(BOLD)compiled '$(notdir $<)'$(RESET)"
+	@$(if $(filter true,$(DEBUG_MODE)),echo "$(CC) $(CFLAGS) $< -c -o $@ $(LIB)")
+	@$(MKDIR_CMD) $(dir $@)
+	@$(CC) $(CFLAGS) $< -c -o $@ $(LIB)
+	@echo "$(GREEN)$(BOLD)compiled '$(notdir $<)'$(RESET)"
 
-$(BIN_PROGRAMS): $$(filter $(OBJ)/$$(notdir $$@)/% $(foreach i, $(COMMON), $(OBJ)/$(i)/%), $(OBJFILES))
+###############################################################################
+# Linkeo final                                                                #
+###############################################################################
+
+$(BIN_DIR)%: $$($$*_OBJS)
 	@echo "$(GREEN)Linking $(notdir $@)...$(RESET)"
+	@$(if $(filter true,$(DEBUG_MODE)),echo "$(CC) $(CFLAGS) $^ -o $@ $(LIB)")
 	@$(CC) $(CFLAGS) $^ -o $@ $(LIB)
 	@echo "$(GREEN)$(BOLD)  compiled '$(notdir $@)'$(RESET)"
 
 
 ###############################################################################
-#                   Cualquier duda no temas en preguntar!                     #
+#                  ¡Cualquier duda no temas en preguntar!                     #
 ###############################################################################
 # Disclaimer:                                                                 #
-#                                                                             #
-# Deberías modificar solamente el nivel de Optimización (OPT, linea 20).      #
-# Modificar la Makefile si no sabes lo que está pasando o como la usamos los  #
-# ayudantes puede resultar en un perjuicio en la evaluación de tu código.     #
+#   Deberías modificar solamente el nivel de Optimización (`DEBUG_MODE`) y    #
+#   las carpetas de archivos a compilar (`PROGRAMS` y `COMMON`). Modificar la #
+#   Makefile si no sabes lo que está pasando o cómo la usamos los ayudantes   #
+#   puede resultar en un perjuicio en la evaluación de tu código.             #
 ###############################################################################
