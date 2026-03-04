@@ -1,13 +1,24 @@
 ###############################################################################
-#                             Makefile Múltiple                               #
+#                   Makefile Múltiple Recursivo (Unix-compatible)             #
 #                                                                             #
-# Por Vicente Errázuriz                                                       #
+# Versión original por Vicente Errázuriz                                      #
 # Para el curso de Estructuras de Datos y Algoritmos, 2017 - 1, PUC           #
 # Makefile diseñada para el trabajo de varios programas con código común      #
-# OJO: Modificada por Benja Vicente (2023 - 2), para permitir bien SRC y BIN  #
+#                                                                             #
+# OJO: Modificada por Benja Vicente (2023 - 2), para:                         #
+#   -  permitir bien SRC y BIN                                                #
+#                                                                             #
 # OJO 2: Modificado por Luis González (ljgonzalez1) (2026 - 1), para hacerlo  #
-#        más user friendly.                                                   #
+#        más user friendly. Se:                                               #
+#   - Implementa búsqueda recursiva de archivos a compilar                    #
+#   - Catch por si alguna carpeta en COMMON no existe                         #
+#   - Agregar % de progreso                                                   #
+#   - Simplificar el las flags para optimizar y debuggear                     #
+#   - Agregar colores ANSI :D                                                 #
+#   - Agregar regla de 'recreate' := make clean & make all                    #
+#                                                                             #
 ###############################################################################
+
 
 ###############################################################################
 #                               GUÍA DE USO                                   #
@@ -23,19 +34,20 @@
 ###############################################################################
 
 
-
 ###############################################################################
 ########========--------         Variables Base        --------========########
 ###############################################################################
 
+# Descomentar una de las dos líneas:
+DEBUG_MODE = true   # Mostrará warnings y no optimizará. Sirve para debug
+# DEBUG_MODE = false  # No mostrará warnings y optimizará al máximo
+
 # Directorios que serán compilados a un programa
-PROGRAMS=binario1 \
-	binario2
+PROGRAMS=puffle \
+	cardjitsu
 
 # Directorios con elementos de uso común
-COMMON=carpeta_comun1 \
-    carpeta_comun2 \
-    carpeta_comun3
+COMMON=
 
 # La carpeta donde va todo el código
 SRC=src
@@ -50,25 +62,41 @@ CC=gcc -std=gnu11
 OBJ=obj
 
 
-
 ###############################################################################
-# OPTIMIZACIÓN POR COMPILADOR (descomenta el que necesites, comenta el otro)  #
+# OPTIMIZACIÓN POR COMPILADOR, según el flag DEBUG_MODE                       #
 ###############################################################################
 
-# OPT=-g # Guardar toda la información para poder debugear. No optimiza
-OPT=-O3 # Optimiza al máximo, descarta toda la información de debug.
+ifeq ($(strip $(DEBUG_MODE)),true)
+    # Modo Debug (con warnings, etc.)
+    # O0: Sin optimización.
+    # g3: Con info para debug.
+    # fno-omit-frame-pointer: Mejores backtraces / stack traces.
+    # fno-inline: Sin uso de funciones inline. Usa calls en vez.
+    # W*: Warnings varios
+    OPT = -O0 -g3 \
+    -Wall -Wextra \
+    -Wunused -Wshadow -Wundef \
+    -Wconversion -Wsign-conversion \
+    -Wformat \
+    -Wstrict-prototypes \
+    -fno-omit-frame-pointer -fno-inline
+
+else
+    # Modo Optimizado
+    OPT = -O3 -s -flto
+    # Si estamos en modo optimizado, se suprimen los mensajes de entrada/salida de
+    # directorios en las llamadas recursivas a make.
+    MAKEFLAGS += --no-print-directory
+endif
 
 ###############################################################################
 # PARÁMETROS                                                                  #
 ###############################################################################
 
-# -Wunused = (Warn Unused) Da aviso de las variables que no se estan usando
-# -Wall    = (Warn All) Da aviso de todos los posibles errores de compilación
-# $(OPT)   = Nivel de optimización
-CFLAGS=-Wunused -Wall $(OPT)
+CFLAGS = $(OPT)
 
 ###############################################################################
-########========--------           Librerías           --------========########
+# LIBRERÍAS                                                                   #
 ###############################################################################
 
 # Matemáticas (C Math library)
@@ -138,7 +166,6 @@ $(BIN):
 	@mkdir -p $@
 
 # Esta regla mágica indica que las siguientes reglas necesitan dos pasadas
-# Qué significa eso y por qué es importante no tiene importancia
 .SECONDEXPANSION:
 
 # Dependencias locales para un archivo .o
