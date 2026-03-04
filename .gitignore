@@ -65,3 +65,20 @@ Temporary Items
 .thumbnails/
 
 
+### Genérico
+## Logs y temporales
+
+*.log
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+*.rej
+*~
+.~*
+
+tmp/
+temp/
+.cache/
+
