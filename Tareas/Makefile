@@ -9,6 +9,23 @@
 #        más user friendly.                                                   #
 ###############################################################################
 
+###############################################################################
+#                               GUÍA DE USO                                   #
+###############################################################################
+#                                                                             #
+# VARIABLES CONFIGURABLES:                                                    #
+#   COLORS, DEBUG_MODE, PROGRAMS, COMMON, SRC, BIN, OBJ, OPT, LIB, etc.       #
+#                                                                             #
+# COMANDOS DISPONIBLES:                                                       #
+#   make, make clean, make recreate, make recreate binX, make binX...         #
+#                                                                             #
+# NOTAS: Tus archivos y carpetas no pueden tener espacios en el nombre        #
+###############################################################################
+
+
+
+
+
 # Directorios que serán compilados a un programa
 PROGRAMS=binario1 \
 	binario2
