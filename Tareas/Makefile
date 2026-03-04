@@ -34,6 +34,8 @@
 ###############################################################################
 
 
+
+
 ###############################################################################
 ########========--------         Variables Base        --------========########
 ###############################################################################
@@ -44,10 +46,13 @@ DEBUG_MODE = true   # Mostrará warnings y no optimizará. Sirve para debug
 
 # Directorios que serán compilados a un programa (busca de forma recursiva en la carpeta)
 PROGRAMS = puffle \
-	cardjitsu
+	cardjitsu qwerty
 
 # Directorios con elementos de uso común para todos los binarios (busca de forma recursiva en la carpetas incluidas distintas del binario)
-COMMON =
+COMMON = \
+    include \
+    common \
+    lib
 
 # La carpeta donde va todo el código
 SRC = src
@@ -74,6 +79,9 @@ LIB  = \
     # -lpng \
     # -lpthread \
     # -ljpg
+
+
+
 
 
 ###############################################################################
@@ -112,10 +120,10 @@ else
   RESET     :=
 endif
 
-###############################################################################
-# OPTIMIZACIÓN POR COMPILADOR, según el flag DEBUG_MODE                       #
-###############################################################################
 
+###############################################################################
+# OPTIMIZACIÓN POR COMPILADOR, según el flag OPTIMIZED_MODE                   #
+###############################################################################
 ifeq ($(strip $(DEBUG_MODE)),true)
     # Modo Debug (con warnings, etc.)
     # O0: Sin optimización.
@@ -133,6 +141,7 @@ ifeq ($(strip $(DEBUG_MODE)),true)
 
 else
 	# Modo Optimizado
+	#
 	OPT = -O3 -s -flto
 	# Si estamos en modo optimizado, se suprimen los mensajes de entrada/salida de
 	# directorios en las llamadas recursivas a make.
@@ -144,9 +153,10 @@ endif
 ###############################################################################
 
 RMDIR_CMD := rm -rf$(if $(filter true,$(DEBUG_MODE)),v)  # Verbose solo en Debug Mode
-RM_CMD    := rm -f
+RM_CMD := rm -f
 MKDIR_CMD := mkdir -p
 NULL_DEVICE := /dev/null
+
 
 ###############################################################################
 #                        Funciones de Recursividad                            #
@@ -163,13 +173,12 @@ find_files = $(if $(wildcard $(SRC)/$(1)), \
                  $(error El directorio $(SRC)/$(1) no existe pero está \
                   en PROGRAMS o COMMON) )
 
+
 ###############################################################################
 #             Definición Recursiva de Archivos Unix-Compatible (sin find)     #
 ###############################################################################
 
 # Si COMMON no está vacío, busca archivos .c en cada directorio listado en COMMON.
-# Si un directorio de COMMON no existe: warning en debug, se omite silenciosamente
-# en optimizado. Si un directorio de PROGRAMS no existe: error fatal en ambos casos.
 COMMON_SRC := $(if $(strip $(COMMON)), \
                $(foreach d,$(COMMON), \
                  $(if $(wildcard $(SRC)/$(d)), \
@@ -194,7 +203,7 @@ BIN_PROGRAMS := $(if $(strip $(BIN)), \
 
 # Cálculo de archivos para mostrar porcentaje de avance.
 ALL_OBJ_FILES := $(foreach prog,$(PROGRAMS),$($(prog)_OBJS))
-TOTAL_OBJS    := $(words $(ALL_OBJ_FILES))
+TOTAL_OBJS   := $(words $(ALL_OBJ_FILES))
 ifeq ($(TOTAL_OBJS),0)  # Evita zero division error
   TOTAL_OBJS := 1
 endif
@@ -204,10 +213,10 @@ HDR_FILES := $(call rwildcard,$(SRC)/,*.h)
 # Obtiene la lista de directorios donde se encuentran los archivos objeto, ordenada y sin duplicados.
 OBJ_DIR   := $(sort $(dir $(ALL_OBJ_FILES)))
 
+
 ###############################################################################
 # PARÁMETROS ADICIONALES (Legacy code)                                        #
 ###############################################################################
-
 CFLAGS = $(OPT)
 
 ###############################################################################
@@ -220,7 +229,6 @@ endif
 ###############################################################################
 # REGLAS                                                                      #
 ###############################################################################
-
 THIS_MAKEFILE := $(firstword $(MAKEFILE_LIST))
 
 .PHONY: all clean recreate _reset_counter _main_comp _cleanup _calc_total
@@ -261,6 +269,7 @@ clean:
 	@$(RM_CMD) .compile_count 2>$(NULL_DEVICE) || true
 	@echo "$(BOLD)$(CYAN)Leaving folder: $(CURDIR) ...$(RESET)"
 	@echo "$(BOLD)$(GREEN)Done cleaning$(RESET)"
+
 
 _reset_counter:
 	@$(RM_CMD) .compile_count 2>$(NULL_DEVICE) || true
@@ -321,6 +330,8 @@ $(BIN)/%: $$($$*_OBJS)
 	@echo "$(GREEN)$(BOLD)  compiled '$(notdir $@)'$(RESET)"
 
 
+
+
 ###############################################################################
 # XXXXXXX Known bugs / issues + pending nice to have XXXXXXX                  #
 ###############################################################################
@@ -329,6 +340,8 @@ $(BIN)/%: $$($$*_OBJS)
 # 4. Hacer que acepte el caso borde "BIN = " (sin directorio).
 # 5. Todo lo que está en `COMMON` debe encontrarse dentro de la carpeta `/src`
 ###############################################################################
+
+
 
 
 ###############################################################################
