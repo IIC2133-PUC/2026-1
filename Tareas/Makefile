@@ -168,10 +168,14 @@ find_files = $(if $(wildcard $(SRC)/$(1)), \
 ###############################################################################
 
 # Si COMMON no está vacío, busca archivos .c en cada directorio listado en COMMON.
+# Si un directorio de COMMON no existe: warning en debug, se omite silenciosamente
+# en optimizado. Si un directorio de PROGRAMS no existe: error fatal en ambos casos.
 COMMON_SRC := $(if $(strip $(COMMON)), \
                $(foreach d,$(COMMON), \
                  $(if $(wildcard $(SRC)/$(d)), \
                    $(call find_files,$(d),*.c), \
+                   $(if $(filter true,$(strip $(DEBUG_MODE))), \
+                     $(info $(RED_BOLD_SHELL)Warning: el directorio $(SRC)/$(d) no existe y será omitido.$(RESET_SHELL))) \
                  ) \
                ),)
 
