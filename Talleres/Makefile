@@ -171,7 +171,7 @@ rwildcard = $(foreach d,$(wildcard $1*), \
 find_files = $(if $(wildcard $(SRC)/$(1)), \
                  $(call rwildcard,$(SRC)/$(1)/,$(2)), \
                  $(error El directorio $(SRC)/$(1) no existe pero está \
-                  en PROGRAMS o COMMON) )
+                  en PROGRAMS) )
 
 
 ###############################################################################
