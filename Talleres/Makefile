@@ -336,9 +336,9 @@ $(BIN)/%: $$($$*_OBJS)
 # XXXXXXX Known bugs / issues + pending nice to have XXXXXXX                  #
 ###############################################################################
 # 1. El porcentaje no comienza desde cero si la compilación ya tiene cacheado al menos una fracción.
-# 3. `make clean` falla si el binario no está en la lista.
-# 4. Hacer que acepte el caso borde "BIN = " (sin directorio).
-# 5. Todo lo que está en `COMMON` debe encontrarse dentro de la carpeta `/src`
+# 2. `make clean` falla si el binario no está en la lista.
+# 3. Hacer que acepte el caso borde "BIN = " (sin directorio).
+# 4. Todo lo que está en `COMMON` debe encontrarse dentro de la carpeta `/src`. Sería ideal que no fuese requisito
 ###############################################################################
 
 
