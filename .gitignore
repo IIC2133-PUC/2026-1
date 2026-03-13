@@ -1,0 +1,154 @@
+### OS
+## Windows
+# Vistas previas
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Archivos de configuración de carpetas
+Desktop.ini
+
+# Papelera de reciclaje
+$RECYCLE.BIN/
+
+# Accesos directos
+*.lnk
+
+# Instaladores
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Variables locales de vscode + Windows
+.history/
+
+## MacOS
+# Vistas previas y metadata
+.DS_Store
+.DS_Store?
+
+# Archivos de recursos y metadata
+._*
+
+# Más metadata
+.AppleDouble
+.LSOverride
+
+# Directorios
+.Spotlight-V100
+.Trashes
+.fseventsd
+.VolumeIcon.icns
+
+# Redes compartidas
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+
+## Linux
+
+# Papelera de reciclaje
+.Trash-*
+
+# Sistemas de archivo y puntos de montaje
+.nfs*
+.fuse_hidden*
+
+# Configuración de carpetas
+.directory
+
+# GNOME/GTK thumbnails cache (a veces aparece)
+.thumbnails/
+
+
+### Genérico
+## Logs y temporales
+
+*.log
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+*.rej
+*~
+.~*
+
+tmp/
+temp/
+.cache/
+
+### IDEs
+## Vscode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+# .history/
+.vscode-test/
+
+## Atom
+.atom/
+.atom-build/
+
+## Kate
+*.kate-swp
+*.kate-swo
+.kate-swp
+.kate-swo
+
+## KDevelop
+*.kdev4
+*.kdev5
+*.kdev6
+.kdev4/
+.kdev5/
+.kdev6/
+.kdev_sessions/
+.kdevelop/
+*.kdevelop*
+*.kdevses
+
+## JetBrains IDEs (genérico=
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+## Eclipse y Theia
+.project
+.classpath
+.settings/
+.theia/
+
+## Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Genérico (builds)
+build/
+dist/
+bin/
+obj/
+target/
+
+## Variables de entorno, certificados y claves y otros archivos sensibles.
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+*.p12
+*.pfx
+
