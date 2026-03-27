@@ -5,6 +5,7 @@
 ## Visualización y comparación de algoritmos
 - Visualgo (https://visualgo.net/en/bst)
 - David Galles USFCA (https://www.cs.usfca.edu/~galles/visualization/about.html)
+- alg0.dev (https://www.alg0.dev/es/) 
 
 ## Talleres fundamentos de C
 
