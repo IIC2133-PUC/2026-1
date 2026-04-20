@@ -11,7 +11,11 @@
 
 - [Intro a C por Vicente Errázuriz y Raúl Álvarez](https://github.com/DCCentral-de-Apuntes/intro-C)
 - [Cápsula de Debugging en GDB](https://youtu.be/RNfVQQEUoMQ)
-
+- Práctica de Heaps
+- - [2099 - Find Subsequence of Length K With the Largest Sum (Easy)](https://leetcode.com/problems/find-subsequence-of-length-k-with-the-largest-sum/description/)
+- - [1046 - Last Stone Weight (Easy)](https://leetcode.com/problems/last-stone-weight/description/)
+- - [347 - Top K Frequent Elements (Easy)](https://leetcode.com/problems/top-k-frequent-elements/description/)
+- - [1642 - Furthest Building You Can Reach (Medium)](https://leetcode.com/problems/furthest-building-you-can-reach/description/)
 ## Cápsulas de EDD y Algoritmos en C
 
 - [Repositorio Talleres](https://github.com/IIC2133-PUC/talleres)
