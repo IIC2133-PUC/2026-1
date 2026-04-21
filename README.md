@@ -54,9 +54,9 @@ Bienvenido al sitio web del curso de Estructuras de Datos y Algoritmos. En esta 
 |                      | Matías Espinosa              | [@Coder-Mushroom](https://github.com/Coder-Mushroom)       |
 |                      | Javiera León                 | [@sunrayito](https://github.com/sunrayito)                 |
 |                      | Fernando Riveros             | [@FradexMF](https://github.com/FradexMF)                   |
-|              Cátedra | Juan Pablo Olivares          | [@JpOlivares08](https://github.com/JpOlivares08)           |
-|                      | Camila Sánchez               | [@czsanchez](https://github.com/czsanchez)                 |
-|                      | Javiera Donoso               | [@javieradonosoc](https://github.com/javieradonosoc)       |
+|              Cátedra | Juan Pablo Olivares          | [@JpOlivares08](https://github.com/JpOlivares08)           | juan.olivares@uc.cl
+|                      | Camila Sánchez               | [@czsanchez](https://github.com/czsanchez)                 | czsanchez@uc.cl
+|                      | Javiera Donoso               | [@javieradonosoc](https://github.com/javieradonosoc)       | javieradonoso@uc.cl
 |           Corrección | Rocio Marquez                | [@rocimarquez ](https://github.com/rocimarquez )           |
 |                      | Francisca Matte              | [@franciscamatte ](https://github.com/franciscamatte)      |
 |                      | Cristobal Soto               | [@crist0balsoto](https://github.com/crist0balsoto)         |
